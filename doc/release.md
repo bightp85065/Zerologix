@@ -7,6 +7,9 @@
 - Feature 2: Code architecture design.
 - Feature 3: System design.
 
+## Known issue
+ - Priority Queue isn't work
+
 ## Next Version 
 
 ### New Features (v1.0.1)

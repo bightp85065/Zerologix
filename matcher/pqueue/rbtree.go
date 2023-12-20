@@ -131,7 +131,7 @@ type node struct {
 	next *node
 	prev *node
 	// OrderNode
-	order *OrderNode
+	order *OrderNode // TODO priority queue
 	// This is the other node tying order to another rbtree
 	other *node
 }
