@@ -12,48 +12,45 @@ type productType = int
 type priceType = int
 
 type M struct {
-	slab           *pqueue.Slab
-	newMatchQueues map[productType]map[priceType]*pqueue.MatchQueues
+	matchQueues map[productType]*pqueue.MatchQueues
+	slab        *pqueue.Slab
 }
 
 func NewMatcher(slabSize int) *M {
-	newMatchQueues := make(map[productType]map[priceType]*pqueue.MatchQueues)
+	matchQueues := make(map[productType]*pqueue.MatchQueues)
 	slab := pqueue.NewSlab(slabSize)
-	return &M{slab: slab, newMatchQueues: newMatchQueues}
+	return &M{slab: slab, matchQueues: matchQueues}
 }
 
-func (m *M) getMatchQueues(productId, price int) *pqueue.MatchQueues {
-	q := m.newMatchQueues[productId]
+func (m *M) getMatchQueues(productId int) *pqueue.MatchQueues {
+	q := m.matchQueues[productId]
 	if q == nil {
-		m.newMatchQueues[productId] = map[priceType]*pqueue.MatchQueues{}
+		q = &pqueue.MatchQueues{}
+		m.matchQueues[productId] = q
 	}
-	q2 := m.newMatchQueues[productId][price]
-	if q2 == nil {
-		q2 = &pqueue.MatchQueues{}
-		m.newMatchQueues[productId][price] = q2
-	}
-	return q2
+	return q
 }
 
 func (m *M) AddBuy(b *pqueue.OrderNode) {
 	if b.PriceType == mysqlModel.OrderPriceTypeMarket {
 		panic("It is illegal to send a buy at market price")
+		// TODO check market logic
 	}
-	q := m.getMatchQueues(b.ProductId(), int(b.Price()))
+	q := m.getMatchQueues(b.ProductId())
 	if !m.fillableBuy(b, q) {
 		q.PushBuy(b)
 	}
 }
 
 func (m *M) AddSell(s *pqueue.OrderNode) {
-	q := m.getMatchQueues(s.ProductId(), int(s.Price()))
+	q := m.getMatchQueues(s.ProductId())
 	if !m.fillableSell(s, q) {
 		q.PushSell(s)
 	}
 }
 
 func (m *M) Cancel(o *pqueue.OrderNode) {
-	q := m.getMatchQueues(o.ProductId(), int(o.Price()))
+	q := m.getMatchQueues(o.ProductId())
 	ro := q.Cancel(o)
 	if ro != nil {
 		m.completeCancelled(ro)
@@ -66,7 +63,8 @@ func (m *M) Cancel(o *pqueue.OrderNode) {
 
 func (m *M) fillableBuy(b *pqueue.OrderNode, q *pqueue.MatchQueues) bool {
 	for {
-		s := q.PeekSell()
+		// s := q.PeekSell()
+		s := q.PeekLimitSell(b.Price())
 		if s == nil {
 			return false
 		}
@@ -105,7 +103,8 @@ func (m *M) fillableBuy(b *pqueue.OrderNode, q *pqueue.MatchQueues) bool {
 
 func (m *M) fillableSell(s *pqueue.OrderNode, q *pqueue.MatchQueues) bool {
 	for {
-		b := q.PeekBuy()
+		// b := q.PeekBuy()
+		b := q.PeekLimitSell(s.Price())
 		if b == nil {
 			return false
 		}

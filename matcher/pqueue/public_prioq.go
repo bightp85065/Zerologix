@@ -31,6 +31,14 @@ func (m *MatchQueues) PeekSell() *OrderNode {
 	return m.sellTree.peekMin().getOrderNode()
 }
 
+func (m *MatchQueues) PeekLimitBuy(price uint64) *OrderNode {
+	return m.buyTree.popNode(price).getOrderNode()
+}
+
+func (m *MatchQueues) PeekLimitSell(price uint64) *OrderNode {
+	return m.sellTree.popNode(price).getOrderNode()
+}
+
 func (m *MatchQueues) PopBuy() *OrderNode {
 	m.size--
 	return m.buyTree.popMax().getOrderNode()

@@ -66,6 +66,27 @@ func (b *rbtree) popMax() *node {
 	return nil
 }
 
+func (b *rbtree) popNode(price uint64) *node {
+	if price > 0 {
+		n := b.root
+		for n != nil {
+			if n.val == price {
+				n.pop()
+				n.other.pop() // Clear complementary rbtree
+				return n
+			}
+			if n.val > price {
+				n = n.left
+			} else {
+				n = n.right
+			}
+
+		}
+		return nil
+	}
+	return nil
+}
+
 func (b *rbtree) cancel(val uint64) *node {
 	n := b.get(val)
 	if n == nil {
