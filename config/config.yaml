@@ -1,0 +1,22 @@
+env: "DEV"
+app:
+  version: 'v0.1.0'
+  name: 'zerologix-server'
+  debug: true
+log:
+  level: -1
+httpServer:
+  addr: ':3000'
+  metrics_addr: ":9000"
+mysql:
+  user: 'xxx'
+  password: 'xxx'
+  server: "localhost"
+  port: 3306
+  database: 'xxxxx'
+  max_idle_conns: 50
+  max_open_conns: 100
+  max_life_time: '36000s'
+  max_idle_time: '3600s'
+  char_set: 'utf8mb4'
+  time_zone: 'UTC'
